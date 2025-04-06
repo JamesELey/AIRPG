@@ -1,0 +1,41 @@
+# GitLab CI/CD Pipeline configuration for Grid Game
+# This pipeline runs tests automatically before allowing merges
+
+image: python:3.9
+
+# Define stages in the pipeline
+stages:
+  - test
+
+# Cache pip dependencies between jobs
+cache:
+  paths:
+    - .pip-cache/
+
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.pip-cache"
+
+# Test job definition
+test:
+  stage: test
+  script:
+    - pip install -r requirements.txt
+    - cd tests
+    - python run_all_tests.py
+  # The job will be considered successful only if the test script exits with code 0
+  # (which happens when all tests pass)
+  
+  # Artifacts configuration (test reports)
+  artifacts:
+    when: always
+    reports:
+      junit: tests/junit-report.xml
+    expire_in: 1 week
+    
+  # Run this job on all branches
+  rules:
+    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+      when: always
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: always
+    - when: manual 

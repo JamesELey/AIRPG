@@ -66,3 +66,39 @@ The game automatically attempts to load the most recent save file (`savegame_*.j
 *   `K`: NPC (Knight)
 *   `G`: NPC (Goblin)
 *   (Space): Empty Ground 
+
+## CI/CD and Merge Requirements
+
+This project uses GitLab CI/CD to run automated tests for the save/load functionality. The configuration ensures that all tests must pass before a merge request can be approved.
+
+### Setting Up Protected Branches
+
+To enforce passing tests before allowing merges, follow these steps in GitLab:
+
+1. Go to your GitLab repository
+2. Navigate to **Settings > Repository > Protected Branches**
+3. Protect your main branch (usually `main` or `master`)
+4. Under **Allowed to merge**, select **Maintainers** (or your preferred role)
+5. Check the **Require status checks to pass before merging** option
+6. Save your changes
+
+### Setting Up Merge Request Settings
+
+To enforce CI pipeline success for merge requests:
+
+1. Go to **Settings > Merge requests**
+2. Scroll to **Merge checks**
+3. Enable **Pipelines must succeed**
+4. Optionally, also enable **All discussions must be resolved**
+5. Save your changes
+
+### Running Tests Locally
+
+You can run the same tests locally before pushing:
+
+```bash
+cd tests
+python run_all_tests.py
+```
+
+If all tests pass, your changes are ready to be pushed for review! 

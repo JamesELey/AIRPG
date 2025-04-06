@@ -11,6 +11,7 @@ from .windows.store_window import StoreWindow
 from items.crop import Crop
 from grid_game import GridGame, STORE_SYMBOL, PORTAL_SYMBOL
 from datetime import datetime
+import time
 
 # Helper function for centering windows (could be moved to a utils file)
 def center_window(window, width, height):
@@ -29,6 +30,7 @@ class GameGUI:
         self.messages = []
         self.battle_in_progress = False
         self.current_battle_npc = None
+        self.last_time_update = time.time()  # Track last time update
 
         self.setup_window()
         self.create_styles()
@@ -58,6 +60,9 @@ class GameGUI:
         ttk.Button(save_load_frame, text="💾 Save Game", command=self.open_save_dialog).grid(row=0, column=0, padx=5, sticky="ew")
         # No load button here anymore, loading happens from main menu
         # ttk.Button(save_load_frame, text="📂 Load Game", command=self.load_game).grid(row=0, column=1, padx=5, sticky="ew")
+        
+        # Start the timer to update game state every 30 seconds
+        self.setup_game_timer()
 
     def setup_window(self):
         """Set up the main window"""
@@ -1334,3 +1339,31 @@ class GameGUI:
                      style = "Crop.TButton"
 
                 btn.configure(style=style)
+
+    def setup_game_timer(self):
+        """Set up a timer to regularly update the game state"""
+        self.update_game_state()  # Call immediately once
+        # Schedule regular updates every 30 seconds
+        self.root.after(30000, self.setup_game_timer)
+        
+    def update_game_state(self):
+        """Update game state including time and crops"""
+        if self.battle_in_progress:
+            logging.debug("[update_game_state] Skipping update during battle")
+            return
+            
+        current_time = time.time()
+        elapsed_seconds = current_time - self.last_time_update
+        
+        if elapsed_seconds > 1:  # Only update if at least 1 second has passed
+            logging.info(f"[update_game_state] Updating game state after {elapsed_seconds:.1f} seconds")
+            
+            # Update game time and crops
+            self.game.update_crops()  # This will call time_system.get_time_delta_in_hours() internally
+            
+            # Update UI
+            self.update_stats()
+            self.update_grid()
+            
+            self.last_time_update = current_time
+            logging.info("[update_game_state] Game state updated successfully")

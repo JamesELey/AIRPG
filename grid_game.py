@@ -664,9 +664,17 @@ class GridGame:
     def update_crops(self):
         """Update growth progress of all planted crops based on time."""
         time_delta_hours = self.time_system.get_time_delta_in_hours()
-        if time_delta_hours == 0: return # No update needed if no time passed
+        logging.info(f"[update_crops] Time delta: {time_delta_hours:.2f} hours. Current time: {self.time_system.current_time.strftime('%I:%M %p')}")
+        
+        if time_delta_hours == 0: 
+            logging.debug("[update_crops] No time passed, skipping crop updates")
+            return # No update needed if no time passed
 
         weather_multiplier = self.weather.get_crop_growth_multiplier()
+        logging.info(f"[update_crops] Weather multiplier: {weather_multiplier}")
+        
+        crop_count = 0
+        updated_count = 0
         positions_to_clear = []
 
         for pos, crop_obj_or_list in list(self.planted_crops.items()): # Iterate on copy
@@ -674,26 +682,44 @@ class GridGame:
             updated_crops = [] # For multi-crop tiles
 
             if isinstance(crop_obj_or_list, list):
+                crop_count += len(crop_obj_or_list)
                 for crop in crop_obj_or_list:
+                    old_progress = crop.growth_progress
                     if crop.growth_progress < 1.0:
                         # Calculate growth increment
                         growth_increment = (time_delta_hours / crop.growth_time) * weather_multiplier
                         crop.growth_progress = min(1.0, crop.growth_progress + growth_increment)
+                        if old_progress != crop.growth_progress:
+                            updated_count += 1
+                            logging.debug(f"[update_crops] Crop at {pos} ({crop.name}) grew: {old_progress:.2f} -> {crop.growth_progress:.2f}")
                     updated_crops.append(crop) # Keep the crop (updated or already mature)
                 self.planted_crops[pos] = updated_crops # Update the list
                 # Update grid symbol based on the most grown crop in the list
                 if updated_crops:
                     most_grown = max(updated_crops, key=lambda c: c.growth_progress)
-                    self.grid[level][row][col] = most_grown.get_growth_stage()
+                    old_symbol = self.grid[level][row][col]
+                    new_symbol = most_grown.get_growth_stage()
+                    self.grid[level][row][col] = new_symbol
+                    if old_symbol != new_symbol:
+                        logging.info(f"[update_crops] Crop visual at {pos} changed: {old_symbol} -> {new_symbol}")
                 else: # Should not happen if logic is right, but defensively clear
                     positions_to_clear.append(pos)
             elif isinstance(crop_obj_or_list, Crop):
+                crop_count += 1
                 crop = crop_obj_or_list
+                old_progress = crop.growth_progress
                 if crop.growth_progress < 1.0:
                     growth_increment = (time_delta_hours / crop.growth_time) * weather_multiplier
                     crop.growth_progress = min(1.0, crop.growth_progress + growth_increment)
+                    if old_progress != crop.growth_progress:
+                        updated_count += 1
+                        logging.debug(f"[update_crops] Crop at {pos} ({crop.name}) grew: {old_progress:.2f} -> {crop.growth_progress:.2f}")
                 # Update grid symbol directly for single crop
-                self.grid[level][row][col] = crop.get_growth_stage()
+                old_symbol = self.grid[level][row][col]
+                new_symbol = crop.get_growth_stage()
+                self.grid[level][row][col] = new_symbol
+                if old_symbol != new_symbol:
+                    logging.info(f"[update_crops] Crop visual at {pos} changed: {old_symbol} -> {new_symbol}")
             else: # Should not happen
                 logging.warning(f"Invalid crop data type at {pos}: {type(crop_obj_or_list)}")
                 positions_to_clear.append(pos) # Mark for removal if invalid data found
@@ -704,6 +730,8 @@ class GridGame:
                 del self.planted_crops[pos]
             level, row, col = pos
             self.grid[level][row][col] = ' '
+            
+        logging.info(f"[update_crops] Updated {updated_count}/{crop_count} crops")
 
     # --- Save/Load --- #
     def to_dict(self) -> Dict[str, Any]:

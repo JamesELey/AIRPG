@@ -554,7 +554,7 @@ class GridGame:
     def plant_crop(self, crop: Crop, position: list) -> Tuple[bool, str]:
         """Plant a crop at the specified position"""
         level, row, col = position
-        seed_cost = crop.value // 2 # Simple seed cost calculation
+        seed_cost = crop.value // 2  # Simple seed cost calculation
 
         if self.player.credits < seed_cost:
             return False, f"Not enough credits (need {seed_cost})"
@@ -570,13 +570,13 @@ class GridGame:
             if not can_multi_plant:
                 return False, f"Cannot plant multiple crops in one tile (requires farming level {self.get_farming_level_requirement('multi_planting')})"
             if isinstance(existing_crops, list) and len(existing_crops) >= 2:
-                    return False, "Maximum 2 crops per tile allowed"
-            if not isinstance(existing_crops, list) and len([existing_crops]) >= 2: # Should not happen if logic correct
-                 return False, "Maximum 2 crops per tile allowed (logic error check)"
+                return False, "Maximum 2 crops per tile allowed"
+            if not isinstance(existing_crops, list) and len([existing_crops]) >= 2:  # Should not happen if logic correct
+                return False, "Maximum 2 crops per tile allowed (logic error check)"
 
         # Only allow planting on empty grid cells (' ')
         if self.grid[level][row][col] != ' ':
-             return False, "Position is not empty ground"
+            return False, "Position is not empty ground"
 
         crop.planted_time = self.time_system.current_time
         crop.growth_progress = 0.0
@@ -584,12 +584,12 @@ class GridGame:
         if pos_tuple in self.planted_crops:
             if isinstance(self.planted_crops[pos_tuple], list):
                 self.planted_crops[pos_tuple].append(crop)
-            else: # Convert single crop to list
+            else:  # Convert single crop to list
                 self.planted_crops[pos_tuple] = [self.planted_crops[pos_tuple], crop]
         else:
-            self.planted_crops[pos_tuple] = crop # Store single crop initially
+            self.planted_crops[pos_tuple] = crop  # Store single crop initially
 
-        self.grid[level][row][col] = '🌱' # Update grid visually
+        self.grid[level][row][col] = '🌱'  # Update grid visually
         self.player.credits -= seed_cost
         self.farming_stats["crops_planted"] += 1
         level_up_message = self.add_farming_exp(10)
@@ -602,7 +602,7 @@ class GridGame:
     def harvest_crop(self, position_tuple: tuple) -> Tuple[int, List[str], Optional[str]]:
         """Harvest crop(s) at the specified position tuple."""
         if position_tuple not in self.planted_crops:
-            return 0, [], None # No crop here
+            return 0, [], None  # No crop here
 
         crops_at_pos = self.planted_crops[position_tuple]
         total_value = 0
@@ -616,19 +616,19 @@ class GridGame:
                 if crop.growth_progress >= 1.0:
                     total_value += crop.value
                     harvested_names.append(crop.name)
-                    exp_gained += 25 # Exp per harvested crop
+                    exp_gained += 25  # Exp per harvested crop
                 else:
-                    crops_remaining.append(crop) # Keep unripe crops
+                    crops_remaining.append(crop)  # Keep unripe crops
             if crops_remaining:
-                 self.planted_crops[position_tuple] = crops_remaining # Update list
+                self.planted_crops[position_tuple] = crops_remaining  # Update list
             else:
-                 del self.planted_crops[position_tuple] # Remove if all harvested
-        elif isinstance(crops_at_pos, Crop): # Single crop case
+                del self.planted_crops[position_tuple]  # Remove if all harvested
+        elif isinstance(crops_at_pos, Crop):  # Single crop case
             if crops_at_pos.growth_progress >= 1.0:
                 total_value += crops_at_pos.value
                 harvested_names.append(crops_at_pos.name)
                 exp_gained += 25
-                del self.planted_crops[position_tuple] # Remove harvested crop
+                del self.planted_crops[position_tuple]  # Remove harvested crop
             # else: leave the unripe single crop
 
         if total_value > 0:
@@ -638,8 +638,8 @@ class GridGame:
             level_up_message = self.add_farming_exp(exp_gained)
             # Clear grid cell only if the key was deleted (no remaining crops)
             if position_tuple not in self.planted_crops:
-                 level, row, col = position_tuple
-                 self.grid[level][row][col] = ' ' # Clear visually
+                level, row, col = position_tuple
+                self.grid[level][row][col] = ' '  # Clear visually
 
         return total_value, harvested_names, level_up_message
 
@@ -737,7 +737,7 @@ class GridGame:
     def to_dict(self) -> Dict[str, Any]:
         """Convert the entire game state to a dictionary for saving."""
         metadata = {
-            'save_time': datetime.datetime.now().isoformat(),
+            'save_time': datetime.now().isoformat(),
             'player_name': self.player.name,
             'player_level': self.player.level if hasattr(self.player, 'level') else 1,
         }
@@ -824,10 +824,8 @@ class GridGame:
                     npc_data = npc_entry['npc_data']
                     npc_obj = NPC.from_dict(npc_data)
                     game.npcs.append((pos, npc_obj))
-                else:
-                    logging.warning(f"Skipping invalid NPC entry format in save file: {npc_entry}")
             except Exception as e:
-                logging.error(f"Error loading NPC from data {npc_entry.get('npc_data',{})}: {e}")
+                logging.warning(f"Skipping invalid NPC entry format in save file: {npc_entry}")
 
         # Load Crops (keys are JSON strings representing lists)
         game.planted_crops = {}

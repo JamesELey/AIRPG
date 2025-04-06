@@ -1,5 +1,6 @@
 from .character import Character
 import random
+import logging
 
 
 class NPC(Character):
@@ -16,6 +17,10 @@ class NPC(Character):
     @classmethod
     def generate_random(cls, level=1, is_boss=False):
         """Generate a random NPC with stats appropriate for the given level"""
+        # --- Ensure minimum level is 1 ---
+        actual_level = max(1, level)
+        # ---------------------------------
+
         # Base stats
         base_health = random.randint(60, 90)
         base_attack = random.randint(8, 15)
@@ -23,7 +28,8 @@ class NPC(Character):
         base_agility = random.randint(5, 8)
 
         # Level multiplier (15% increase per level)
-        level_multiplier = 1 + (0.15 * (level - 1))
+        # Use actual_level for calculation
+        level_multiplier = 1 + (0.15 * (actual_level - 1))
 
         # Apply multiplier to stats
         health = int(base_health * level_multiplier)
@@ -43,10 +49,12 @@ class NPC(Character):
                       'Cunning', 'Ancient', 'Dark', 'Wild']
         types = ['Warrior', 'Hunter', 'Rogue', 'Brute', 'Knight', 'Guard']
         prefix = "Boss" if is_boss else "Level"
-        name = f"{prefix} {level} {random.choice(adjectives)} {random.choice(types)}"
+        # Use actual_level in the name
+        name = f"{prefix} {actual_level} {random.choice(adjectives)} {random.choice(types)}"
 
         # Create instance without drops/inventory initially
-        npc = cls(name, health, attack, defense, agility, level, is_boss)
+        # Pass actual_level to the constructor
+        npc = cls(name, health, attack, defense, agility, actual_level, is_boss)
         
         # Add default drops based on level/type?
         # npc.add_drop(Item(...), drop_chance=0.1)
@@ -116,7 +124,9 @@ class NPC(Character):
         base_credits = 10 * self.level
         if self.is_boss:
             base_credits *= 2
-        return base_credits
+        # --- Ensure minimum 1 credit --- #
+        return max(1, base_credits)
+        # ----------------------------- #
 
     def to_dict(self):
         """Convert NPC to dictionary for saving"""
@@ -136,13 +146,19 @@ class NPC(Character):
     @classmethod
     def from_dict(cls, data):
         """Create NPC from dictionary data"""
+        # --- Ensure minimum level 1 even from save --- #
+        loaded_level = data.get('level', 1) # Default level if missing
+        actual_level = max(1, loaded_level)
+        # ------------------------------------------ #
+
         npc = cls(
             name=data['name'],
             health=data['health'],
             attack=data['attack'],
             defense=data['defense'],
             agility=data['agility'],
-            level=data.get('level', 1), # Default level if missing
+            # Use actual_level here
+            level=actual_level,
             is_boss=data.get('is_boss', False) # Default boss status
         )
 
@@ -183,13 +199,20 @@ class NPC(Character):
         return npc
 
     def respawn(self):
-        """Respawn the NPC with full health and +1 to a random stat"""
-        # Restore full health
+        """Respawn the NPC with full health, 10% more max_hp, and +1 to a random stat"""
+        # --- CORRECTION: Increase max_hp by 10% --- #
+        original_max_hp = self.max_health
+        self.max_health = round(self.max_health * 1.10)
+        logging.debug(f"NPC '{self.name}' respawn: max_hp increased from {original_max_hp} to {self.max_health}")
+        # ------------------------------------------ #
+
+        # Restore full health (to the new max_hp)
         self.health = self.max_health
-        
+
         # Randomly increase one stat by 1
         stats = ['attack', 'defense', 'agility']
         increased_stat = random.choice(stats)
         setattr(self, increased_stat, getattr(self, increased_stat) + 1)
-        
+        logging.debug(f"NPC '{self.name}' respawn: Increased stat '{increased_stat}'")
+
         return increased_stat

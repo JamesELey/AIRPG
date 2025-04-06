@@ -164,6 +164,9 @@ class BattleWindow(BaseWindow):
                 # Add experience and check for level up
                 self.game.player.add_experience(exp_gain)
                 self.game.player.credits += credits_gain
+                # --- ADDED DEBUG LOG ---
+                logging.debug(f"[BattleWindow] Credits Awarded: {credits_gain}. Player credits NOW: {self.game.player.credits}")
+                # ---------------------
 
                 # Show rewards in battle log
                 self.update_battle_log(f"Gained {exp_gain} experience!")
@@ -261,6 +264,9 @@ class BattleWindow(BaseWindow):
                 # Add experience and check for level up
                 self.game.player.add_experience(exp_gain)
                 self.game.player.credits += credits_gain
+                # --- ADDED DEBUG LOG ---
+                logging.debug(f"[BattleWindow] Credits Awarded: {credits_gain}. Player credits NOW: {self.game.player.credits}")
+                # ---------------------
 
                 # Show rewards in battle log
                 self.update_battle_log(f"Gained {exp_gain} experience!")

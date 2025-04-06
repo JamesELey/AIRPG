@@ -1,7 +1,7 @@
 import random
 import json
 import os
-import datetime
+from datetime import datetime, timedelta
 import traceback
 import logging
 import importlib
@@ -913,11 +913,33 @@ class GridGame:
         # ... existing move_player code ...
         pass
 
-    def record_battle(self, npc_name, player_won, xp_gained, credits_gained):
+    def record_battle(self, npc_name, player_won, turns, credits_gained, dropped_items):
         """Records the outcome of a battle."""
-        # TODO: Implement battle recording logic (e.g., logging, stats tracking)
-        logging.info(f"Battle recorded: NPC='{npc_name}', Won={player_won}, XP={xp_gained}, Credits={credits_gained}")
-        pass
+        record = {
+            "npc_name": npc_name,
+            "player_won": player_won,
+            "turns": turns,
+            "credits_gained": credits_gained,
+            "items_gained": dropped_items,
+            "timestamp": datetime.now().isoformat()
+        }
+        self.battle_history.append(record)
+        # Keep only the last N records if desired
+        # max_history = 10
+        # if len(self.battle_history) > max_history:
+        #     self.battle_history = self.battle_history[-max_history:]
+
+        # Update game stats
+        if player_won:
+            self.game_stats["battles_won"] += 1
+            self.game_stats["total_credits_earned"] += credits_gained
+            self.game_stats["monsters_killed"] += 1
+            if self.player_pos[0] > self.game_stats["highest_level"]:
+                self.game_stats["highest_level"] = self.player_pos[0]
+            if self.player_pos[0] == self.max_level:
+                self.game_stats["portal_bosses_defeated"] += 1
+        else:
+            self.game_stats["battles_lost"] += 1
 
     # --- Game State ---
     def get_current_level_grid(self):

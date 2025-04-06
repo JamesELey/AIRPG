@@ -5,7 +5,7 @@ class TimeSystem:
     def __init__(self):
         """Initialize the time system"""
         self.current_time = datetime.now()
-        self.time_multiplier = 1.0  # 1 real second = 1 game minute
+        self.time_multiplier = 5.0  # 1 real second = 5 game minutes
         self.last_update_time = datetime.now()  # Add tracking for real-time updates
         logging.info(f"[TimeSystem] Initialized with time: {self.current_time.strftime('%I:%M %p')}, multiplier: {self.time_multiplier}")
         

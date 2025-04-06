@@ -642,9 +642,12 @@ class GameGUI:
     def update_stats(self):
         """Update the player stats display panel"""
         p = self.game.player
+        # --- ADDED DEBUG LOG ---
+        logging.debug(f"[update_stats] Reading player credits: {p.credits}")
+        # ---------------------
         self.stats_text.configure(state="normal")
         self.stats_text.delete(1.0, tk.END)
-
+        
         # Header
         self.stats_text.insert(tk.END, f"--- {p.name} ---\n", ("header", "center"))
         self.stats_text.insert(tk.END, f"Level {p.level}\n", ("level", "center"))
@@ -682,7 +685,7 @@ class GameGUI:
         self.stats_text.insert(tk.END, f"Weather: {self.game.weather.get_weather_symbol()} {self.game.weather.get_weather_description()}\n")
 
         self.stats_text.configure(state="disabled")
-
+        
     def _create_progress_bar(self, percent, length=20, char='#'):
         filled_length = int(length * (percent / 100))
         return char * filled_length + '-' * (length - filled_length)

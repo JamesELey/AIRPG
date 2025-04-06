@@ -401,7 +401,7 @@ class GridGame:
                     break
                 attempts += 1
             if attempts == 100:
-                 logging.warning(f"Could not place Store {i + 1}/{num_stores} on level {level} after 100 attempts.")
+                logging.warning(f"Could not place Store {i + 1}/{num_stores} on level {level} after 100 attempts.")
 
     # --- Gameplay Methods --- #
     def get_npc_at(self, level: int, row: int, col: int) -> Optional[NPC]:
@@ -570,7 +570,7 @@ class GridGame:
             if not can_multi_plant:
                 return False, f"Cannot plant multiple crops in one tile (requires farming level {self.get_farming_level_requirement('multi_planting')})"
             if isinstance(existing_crops, list) and len(existing_crops) >= 2:
-                 return False, "Maximum 2 crops per tile allowed"
+                    return False, "Maximum 2 crops per tile allowed"
             if not isinstance(existing_crops, list) and len([existing_crops]) >= 2: # Should not happen if logic correct
                  return False, "Maximum 2 crops per tile allowed (logic error check)"
 
@@ -683,10 +683,10 @@ class GridGame:
                 self.planted_crops[pos] = updated_crops # Update the list
                 # Update grid symbol based on the most grown crop in the list
                 if updated_crops:
-                     most_grown = max(updated_crops, key=lambda c: c.growth_progress)
-                     self.grid[level][row][col] = most_grown.get_growth_stage()
+                    most_grown = max(updated_crops, key=lambda c: c.growth_progress)
+                    self.grid[level][row][col] = most_grown.get_growth_stage()
                 else: # Should not happen if logic is right, but defensively clear
-                     positions_to_clear.append(pos)
+                    positions_to_clear.append(pos)
             elif isinstance(crop_obj_or_list, Crop):
                 crop = crop_obj_or_list
                 if crop.growth_progress < 1.0:
@@ -695,15 +695,15 @@ class GridGame:
                 # Update grid symbol directly for single crop
                 self.grid[level][row][col] = crop.get_growth_stage()
             else: # Should not happen
-                 logging.warning(f"Invalid crop data type at {pos}: {type(crop_obj_or_list)}")
-                 positions_to_clear.append(pos) # Mark for removal if invalid data found
+                logging.warning(f"Invalid crop data type at {pos}: {type(crop_obj_or_list)}")
+                positions_to_clear.append(pos) # Mark for removal if invalid data found
 
         # Clear grid for positions where all crops were removed (e.g., invalid data)
         for pos in positions_to_clear:
-             if pos in self.planted_crops: # Check if not already removed by harvest
-                  del self.planted_crops[pos]
-             level, row, col = pos
-             self.grid[level][row][col] = ' '
+            if pos in self.planted_crops: # Check if not already removed by harvest
+                del self.planted_crops[pos]
+            level, row, col = pos
+            self.grid[level][row][col] = ' '
 
     # --- Save/Load --- #
     def to_dict(self) -> Dict[str, Any]:
@@ -791,44 +791,44 @@ class GridGame:
         npc_data_list = data.get('npcs', [])
         for npc_entry in npc_data_list:
             try:
-                 if isinstance(npc_entry, dict) and 'position' in npc_entry and 'npc_data' in npc_entry:
-                     pos = npc_entry['position']
-                     npc_data = npc_entry['npc_data']
-                     npc_obj = NPC.from_dict(npc_data)
-                     game.npcs.append((pos, npc_obj))
-                 else:
-                     logging.warning(f"Skipping invalid NPC entry format in save file: {npc_entry}")
+                if isinstance(npc_entry, dict) and 'position' in npc_entry and 'npc_data' in npc_entry:
+                    pos = npc_entry['position']
+                    npc_data = npc_entry['npc_data']
+                    npc_obj = NPC.from_dict(npc_data)
+                    game.npcs.append((pos, npc_obj))
+                else:
+                    logging.warning(f"Skipping invalid NPC entry format in save file: {npc_entry}")
             except Exception as e:
-                 logging.error(f"Error loading NPC from data {npc_entry.get('npc_data',{})}: {e}")
+                logging.error(f"Error loading NPC from data {npc_entry.get('npc_data',{})}: {e}")
 
         # Load Crops (keys are JSON strings representing lists)
         game.planted_crops = {}
         saved_crops_list = data.get('planted_crops', [])
         if isinstance(saved_crops_list, list): # Check if it's the new list format
-             for crop_entry in saved_crops_list:
-                 try:
-                     pos_list = crop_entry.get('position')
-                     crop_data_list = crop_entry.get('crops', [])
-                     if not pos_list or not isinstance(pos_list, list) or len(pos_list) != 3:
-                         logging.warning(f"Skipping invalid crop entry position in save file: {crop_entry}")
-                         continue
+            for crop_entry in saved_crops_list:
+                try:
+                    pos_list = crop_entry.get('position')
+                    crop_data_list = crop_entry.get('crops', [])
+                    if not pos_list or not isinstance(pos_list, list) or len(pos_list) != 3:
+                        logging.warning(f"Skipping invalid crop entry position in save file: {crop_entry}")
+                        continue
 
-                     pos_tuple = tuple(pos_list)
-                     loaded_crops = []
-                     for crop_data in crop_data_list:
-                          try:
-                              crop_obj = Crop.from_dict(crop_data)
-                              loaded_crops.append(crop_obj)
-                          except Exception as e_inner:
-                              logging.error(f"Error instantiating crop object from data {crop_data} at pos {pos_tuple}: {e_inner}")
-                     
-                     if loaded_crops: # Only add if crops were successfully loaded
-                          game.planted_crops[pos_tuple] = loaded_crops[0] if len(loaded_crops) == 1 else loaded_crops
-                 except Exception as e:
-                      logging.error(f"Error processing crop entry {crop_entry}: {e}")
+                    pos_tuple = tuple(pos_list)
+                    loaded_crops = []
+                    for crop_data in crop_data_list:
+                        try:
+                            crop_obj = Crop.from_dict(crop_data)
+                            loaded_crops.append(crop_obj)
+                        except Exception as e_inner:
+                            logging.error(f"Error instantiating crop object from data {crop_data} at pos {pos_tuple}: {e_inner}")
+                    
+                    if loaded_crops: # Only add if crops were successfully loaded
+                        game.planted_crops[pos_tuple] = loaded_crops[0] if len(loaded_crops) == 1 else loaded_crops
+                except Exception as e:
+                    logging.error(f"Error processing crop entry {crop_entry}: {e}")
         elif isinstance(saved_crops_list, dict): # Handle old dictionary format (attempt basic compatibility? or just warn)
-             logging.warning("Loading old save format for crops. Errors may occur. Please re-save the game.")
-             # (Optional: Could add code here to attempt loading the old format)
+            logging.warning("Loading old save format for crops. Errors may occur. Please re-save the game.")
+            # (Optional: Could add code here to attempt loading the old format)
 
         # NOTE: self.grid is NOT loaded here, it will be populated by load_game after this returns.
         return game
@@ -945,6 +945,43 @@ class GridGame:
     def get_current_level_grid(self):
         # ... existing get_current_level_grid code ...
         pass
+
+    # --- ADDED: Find empty spot for respawn --- #
+    def find_random_empty_spot(self, level):
+        """Finds a random empty (' ') coordinate [level, r, c] on the specified level."""
+        if not (0 <= level < len(self.grid)):
+            logging.error(f"find_random_empty_spot: Invalid level {level}")
+            return None # Or raise an error
+
+        attempts = 0
+        max_attempts = self.grid_height * self.grid_width * 2 # Generous attempt limit
+
+        while attempts < max_attempts:
+            r = random.randint(0, self.grid_height - 1)
+            c = random.randint(0, self.grid_width - 1)
+            pos = [level, r, c]
+
+            # Check if the spot is empty in the grid
+            if self.grid[level][r][c] == ' ':
+                # Double check it's not player/portal/store/npc positions (in case grid is stale)
+                is_player = (pos == self.player_pos)
+                is_portal = (self.portal_pos and pos == self.portal_pos)
+                is_store = any(pos == store_p for store_p in self.store_pos)
+                is_npc = any(pos == npc_p for npc_p, _ in self.npcs)
+                is_crop = any(pos == list(crop_p) for crop_p in self.planted_crops.keys() if crop_p[0] == level)
+
+                if not is_player and not is_portal and not is_store and not is_npc and not is_crop:
+                    logging.debug(f"find_random_empty_spot: Found empty spot at {pos}")
+                    return pos
+            
+            attempts += 1
+
+        logging.warning(f"find_random_empty_spot: Could not find empty spot on level {level} after {max_attempts} attempts.")
+        return None # Indicate failure
+    # --- END find_random_empty_spot --- #
+
+    def _initialize_grid(self):
+        """Initializes the grid structure for all levels."""
 
 # --- End of GridGame Class --- #
 

@@ -35,5 +35,5 @@ class TimeSystem:
         """Create time system from dictionary data"""
         system = cls()
         system.current_time = datetime.fromisoformat(data["current_time"])
-        system.time_multiplier = data["time_multiplier"]
+        system.time_multiplier = data.get("time_multiplier", 1.0)  # Use default 1.0 if missing
         return system 

@@ -165,10 +165,10 @@ class GameGUI:
         scrollbar = ttk.Scrollbar(stats_container)
         scrollbar.grid(row=0, column=1, sticky="ns")
 
-        # Create text widget with scrollbar
+        # Create text widget with scrollbar - reduced height from 35 to 10
         self.stats_text = tk.Text(
             stats_container,
-            height=35,
+            height=10,
             width=55,
             wrap=tk.WORD,
             yscrollcommand=scrollbar.set
@@ -195,35 +195,55 @@ class GameGUI:
             self.right_panel, text="🎒 Inventory", padding="10")
         inv_frame.grid(row=1, column=0, sticky="nsew", pady=(0, 10))
 
-        # Create a frame for the listbox and scrollbar
+        # Create a frame for the inventory display
         list_frame = ttk.Frame(inv_frame)
         list_frame.pack(fill="both", expand=True, padx=5, pady=5)
 
-        # Add scrollbar
-        scrollbar = ttk.Scrollbar(list_frame)
-        scrollbar.pack(side="right", fill="y")
+        # Configure columns
+        columns = ("item1", "item2")
 
-        # Create listbox with scrollbar
-        self.inventory_listbox = tk.Listbox(
+        # Create a Treeview with 2 columns
+        self.inventory_tree = ttk.Treeview(
             list_frame,
-            height=10,
-            selectmode=tk.SINGLE,
-            yscrollcommand=scrollbar.set,
-            font=("TkDefaultFont", 10)
+            columns=columns,
+            show="", 
+            height=5,  # Show 5 rows (up to 10 items in 2 columns)
+            selectmode="browse"  # "browse" means only one item can be selected at a time
         )
-        self.inventory_listbox.pack(side="left", fill="both", expand=True)
-        scrollbar.config(command=self.inventory_listbox.yview)
+        
+        # Configure the columns
+        self.inventory_tree.column("item1", width=120, anchor="w")
+        self.inventory_tree.column("item2", width=120, anchor="w")
+        
+        # Add scrollbar
+        scrollbar = ttk.Scrollbar(list_frame, orient="vertical", command=self.inventory_tree.yview)
+        self.inventory_tree.configure(yscrollcommand=scrollbar.set)
+        
+        # Position the treeview and scrollbar
+        self.inventory_tree.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
 
         # Create buttons frame
         button_frame = ttk.Frame(inv_frame)
         button_frame.pack(fill="x", padx=5, pady=(5, 0))
 
-        # Add Use Item button
+        # Add two buttons with equal width
+        button_frame.columnconfigure(0, weight=1)
+        button_frame.columnconfigure(1, weight=1)
+        
+        # Add Open Inventory button
+        ttk.Button(
+            button_frame,
+            text="📋 Open Inventory",
+            command=self.open_inventory_window
+        ).grid(row=0, column=0, padx=2, pady=2, sticky="ew")
+        
+        # Add Use Item button (now just uses the selected item directly)
         ttk.Button(
             button_frame,
             text="📦 Use Item",
-            command=self.use_item
-        ).pack(fill="x", pady=2)
+            command=self.use_selected_item
+        ).grid(row=0, column=1, padx=2, pady=2, sticky="ew")
 
         # Initial inventory update
         self.update_inventory()
@@ -647,81 +667,147 @@ class GameGUI:
     def update_stats(self):
         """Update the player stats display panel"""
         p = self.game.player
-        # --- ADDED DEBUG LOG ---
         logging.debug(f"[update_stats] Reading player credits: {p.credits}")
-        # ---------------------
+        
         self.stats_text.configure(state="normal")
         self.stats_text.delete(1.0, tk.END)
         
-        # Header
-        self.stats_text.insert(tk.END, f"--- {p.name} ---\n", ("header", "center"))
-        self.stats_text.insert(tk.END, f"Level {p.level}\n", ("level", "center"))
-
-        # HP/Energy Bars
-        hp_percent = (p.health / p.max_health) * 100 if p.max_health > 0 else 0
-        energy_percent = (p.energy / p.max_energy) * 100 if p.max_energy > 0 else 0
-        self.stats_text.insert(tk.END, f"\nHP: {p.health}/{p.max_health}\n")
-        self.stats_text.insert(tk.END, self._create_progress_bar(hp_percent, 20, '#'), ("health_color",))
-        self.stats_text.insert(tk.END, f"\nEnergy: {p.energy}/{p.max_energy}\n")
-        self.stats_text.insert(tk.END, self._create_progress_bar(energy_percent, 20, '='), ("energy_color",))
-
-        # Experience Bar
-        exp_percent = (p.experience / p.experience_to_next_level) * 100 if p.experience_to_next_level > 0 else 0
-        self.stats_text.insert(tk.END, f"\nEXP: {p.experience}/{p.experience_to_next_level}\n")
-        self.stats_text.insert(tk.END, self._create_progress_bar(exp_percent, 20, '*'), ("exp_color",))
-
-        # Core Stats
-        self.stats_text.insert(tk.END, f"\n\nAttributes:\n")
-        self.stats_text.insert(tk.END, f"  Attack: {p.get_total_attack()}\n")
-        self.stats_text.insert(tk.END, f"  Defense: {p.defense}\n")
-        self.stats_text.insert(tk.END, f"  Agility: {p.agility}\n")
-
-        # Other Info
-        self.stats_text.insert(tk.END, f"\nCredits: {p.credits} G\n")
-        # Display current weapon if equipped
-        weapon_name = p.weapon.name if p.weapon else "None"
-        self.stats_text.insert(tk.END, f"Weapon: {weapon_name}\n")
-        # Display level keys
-        keys_str = ', '.join(map(str, sorted(p.level_keys))) if p.level_keys else "None"
-        self.stats_text.insert(tk.END, f"Portal Keys: {keys_str}\n")
-
-        # Time and Weather
-        self.stats_text.insert(tk.END, f"\nTime: {self.game.time_system.current_time.strftime('%I:%M %p')}\n")
-        self.stats_text.insert(tk.END, f"Weather: {self.game.weather.get_weather_symbol()} {self.game.weather.get_weather_description()}\n")
-
-        self.stats_text.configure(state="disabled")
+        # Compact single-line header
+        self.stats_text.insert(tk.END, f"{p.name} (Lvl {p.level})\n", ("header", "center"))
         
-    def _create_progress_bar(self, percent, length=20, char='#'):
-        filled_length = int(length * (percent / 100))
-        return char * filled_length + '-' * (length - filled_length)
+        # More compact stats on fewer lines
+        self.stats_text.insert(tk.END, f"HP: {p.health}/{p.max_health} | ENE: {p.energy}/{p.max_energy}\n")
+        self.stats_text.insert(tk.END, f"ATK: {p.get_total_attack()} | DEF: {p.defense} | AGI: {p.agility}\n")
+        self.stats_text.insert(tk.END, f"EXP: {p.experience}/{p.experience_to_next_level} | 💰 {p.credits} G\n")
+        
+        # Weapon on same line as keys if they exist
+        weapon_text = f"Weapon: {p.weapon.name if p.weapon else 'None'}"
+        if p.level_keys:
+            keys_str = ', '.join(map(str, sorted(p.level_keys)))
+            self.stats_text.insert(tk.END, f"{weapon_text} | Keys: {keys_str}\n")
+        else:
+            self.stats_text.insert(tk.END, f"{weapon_text}\n")
+        
+        # Time and weather on single line
+        time_str = self.game.time_system.current_time.strftime('%I:%M %p')
+        weather_str = f"{self.game.weather.get_weather_symbol()} {self.game.weather.get_weather_description()}"
+        self.stats_text.insert(tk.END, f"🕒 {time_str} | {weather_str}\n")
+        
+        self.stats_text.configure(state="disabled")
 
     def update_inventory(self):
-        """Update the inventory display"""
-        self.inventory_listbox.delete(0, tk.END)
+        """Update the inventory display with stacked items"""
+        # Clear previous items
+        for item in self.inventory_tree.get_children():
+            self.inventory_tree.delete(item)
 
         if not self.game.player.inventory:
-            self.inventory_listbox.insert(tk.END, "(Empty)")
+            # Insert empty message as a single item
+            self.inventory_tree.insert("", "end", values=["(Empty)", ""])
             return
 
+        # Stack identical items with counts
+        item_counts = {}
         for item in self.game.player.inventory:
-            # Format item with emoji based on type
-            if "Potion" in item.name:
+            if item.name in item_counts:
+                item_counts[item.name]['count'] += 1
+            else:
+                item_counts[item.name] = {
+                    'count': 1,
+                    'item': item
+                }
+        
+        # Format items with emoji and count
+        formatted_items = []
+        for name, data in item_counts.items():
+            item = data['item']
+            count = data['count']
+            
+            # Determine emoji based on item type
+            if "Potion" in name:
                 emoji = "🧪"
-            elif "Phoenix" in item.name:
+            elif "Phoenix" in name:
                 emoji = "🔥"
-            elif "Note" in item.name:
+            elif "Note" in name:
                 emoji = "📝"
-            elif "Sword" in item.name or "Blade" in item.name:
+            elif "Sword" in name or "Blade" in name:
                 emoji = "⚔️"
-            elif "Shield" in item.name:
+            elif "Shield" in name:
                 emoji = "🛡️"
             else:
                 emoji = "📦"
 
-            self.inventory_listbox.insert(tk.END, f"{emoji} {item.name}")
-
-    def use_item(self):
-        """Handle item usage"""
+            # Store item reference with formatted name for retrieval later
+            item_entry = {
+                'display': f"{emoji} {name}" + (f" ×{count}" if count > 1 else ""),
+                'item': item,
+                'count': count
+            }
+            formatted_items.append(item_entry)
+        
+        # Sort items by name and limit to 8 max
+        formatted_items.sort(key=lambda x: x['display'])
+        formatted_items = formatted_items[:8]
+        
+        # Add empty strings to make even pairs
+        if len(formatted_items) % 2 != 0:
+            formatted_items.append({'display': "", 'item': None, 'count': 0})
+        
+        # Store a mapping of tree IDs to item data for retrieval when selected
+        self.inventory_item_map = {}
+        
+        # Insert items in pairs - store item data for both columns
+        for i in range(0, len(formatted_items), 2):
+            item1 = formatted_items[i]
+            item2 = formatted_items[i+1] if i+1 < len(formatted_items) else {'display': "", 'item': None, 'count': 0}
+            
+            item_id = self.inventory_tree.insert("", "end", values=(item1['display'], item2['display']))
+            
+            # Store both items associated with this row
+            self.inventory_item_map[item_id] = {
+                'col1': item1,
+                'col2': item2
+            }
+        
+        # Show how many items are not displayed
+        total_items = len(self.game.player.inventory)
+        shown_items = min(8, total_items)
+        if total_items > 8:
+            info_id = self.inventory_tree.insert("", "end", values=[
+                f"... {total_items - shown_items} more items", ""
+            ])
+            # Mark this row as not containing actual items
+            self.inventory_item_map[info_id] = {'col1': None, 'col2': None}
+            
+        # Bind click event to handle column selection
+        self.inventory_tree.bind('<ButtonRelease-1>', self.handle_inventory_click)
+        
+    def handle_inventory_click(self, event):
+        """Handle clicks on inventory items to select the right column"""
+        if not self.inventory_tree.selection():
+            return
+            
+        # Get the item that was clicked on
+        row_id = self.inventory_tree.selection()[0]
+        if row_id not in self.inventory_item_map:
+            return
+            
+        # Get the x position of the click
+        x = event.x
+        
+        # Get the column width to determine which column was clicked
+        col_width = self.inventory_tree.column('item1', 'width')
+        
+        # Determine which column was clicked and set selection accordingly
+        if x > col_width and self.inventory_item_map[row_id]['col2']['item'] is not None:
+            # Right column was clicked and contains an item
+            self.selected_inventory_column = 'col2'
+        else:
+            # Left column was clicked or right column is empty
+            self.selected_inventory_column = 'col1'
+            
+    def open_inventory_window(self):
+        """Open the full inventory window"""
         # Create a callback that will update both the message log and the inventory display
         def update_after_use(message):
             self.add_message(message)
@@ -730,6 +816,60 @@ class GameGUI:
         
         # Open the item window with the update callback
         ItemWindow(self.root, self.game, update_after_use)
+
+    def use_selected_item(self):
+        """Use the currently selected item directly from the inventory panel"""
+        # Check if anything is selected
+        if not self.inventory_tree.selection():
+            self.add_message("Please select an item to use.")
+            return
+            
+        row_id = self.inventory_tree.selection()[0]
+        if row_id not in self.inventory_item_map:
+            self.add_message("Please select a valid item.")
+            return
+            
+        # Get column that was clicked (default to left if not specified)
+        column = getattr(self, 'selected_inventory_column', 'col1')
+        
+        # Get the item data from the correct column
+        item_data = self.inventory_item_map[row_id][column]
+        
+        # Check if this is a valid item
+        if not item_data or item_data['item'] is None:
+            self.add_message("Please select a valid item.")
+            return
+            
+        # Now use the item directly similar to how ItemWindow would do it
+        item = item_data['item']
+        
+        # Check if item can be used in the current context
+        if hasattr(item, 'can_use') and not item.can_use(self.game.player):
+            self.add_message(f"Cannot use {item.name} in the current context.")
+            return
+            
+        # Apply the item effect
+        if hasattr(item, 'use'):
+            result = item.use(self.game.player)
+            
+            # Remove the item from inventory after use
+            if item in self.game.player.inventory:
+                self.game.player.inventory.remove(item)
+                
+            # Handle the result, which might be a string or tuple
+            if isinstance(result, tuple):
+                # If it's a tuple, convert all elements to strings and join them
+                message = " ".join(str(part) for part in result)
+            else:
+                # Otherwise just convert to string
+                message = str(result)
+                
+            self.add_message(message)
+            # Update the display after using the item
+            self.update_stats()
+            self.update_inventory()
+        else:
+            self.add_message(f"Cannot use {item.name}.")
 
     def add_message(self, message):
         """Add a message to the message log"""
@@ -1343,8 +1483,8 @@ class GameGUI:
     def setup_game_timer(self):
         """Set up a timer to regularly update the game state"""
         self.update_game_state()  # Call immediately once
-        # Schedule regular updates every 30 seconds
-        self.root.after(30000, self.setup_game_timer)
+        # Schedule regular updates every 5 seconds
+        self.root.after(5000, self.setup_game_timer)
         
     def update_game_state(self):
         """Update game state including time and crops"""

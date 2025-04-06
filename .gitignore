@@ -1,0 +1,13 @@
+# Log files
+*.log
+
+# Save game files
+savegame_*.json
+
+# Environment variables
+.env
+
+# IDE/Editor specific files
+.vscode/
+__pycache__/
+*.pyc 

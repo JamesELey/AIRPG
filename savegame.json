@@ -1,0 +1,275 @@
+{
+    "grid_width": 12,
+    "grid_height": 12,
+    "grid_depth": 3,
+    "player_pos": [
+        0,
+        7,
+        2
+    ],
+    "portal_pos": [
+        0,
+        6,
+        0
+    ],
+    "player": {
+        "name": "JAY DUDE",
+        "health": 60,
+        "max_health": 100,
+        "attack": 10,
+        "defense": 5,
+        "agility": 5,
+        "symbol": "@",
+        "weapon": null,
+        "credits": 1000,
+        "energy": 29,
+        "max_energy": 50,
+        "inventory": [],
+        "level_keys": [],
+        "player_class": "Player",
+        "level": 1,
+        "experience": 78,
+        "experience_to_next_level": 100,
+        "battle_history": [],
+        "items_used": [],
+        "highest_level": 1,
+        "stats": {
+            "battles_won": 0,
+            "battles_lost": 0,
+            "items_used": 0,
+            "distance_traveled": 0,
+            "enemies_defeated": 0,
+            "damage_dealt": 0,
+            "damage_taken": 40,
+            "critical_hits": 0,
+            "gold_earned": 0,
+            "gold_spent": 0,
+            "levels_gained": 0,
+            "potions_used": 0,
+            "weapons_found": 0,
+            "death_count": 0,
+            "play_time": 0,
+            "experience_gained": 78
+        }
+    },
+    "npcs": [
+        {
+            "position": [
+                0,
+                3,
+                11
+            ],
+            "npc_data": {
+                "name": "Loyal Goblin",
+                "health": 75,
+                "max_health": 75,
+                "attack": 11,
+                "defense": 6,
+                "agility": 4,
+                "symbol": "G",
+                "weapon": null,
+                "credits": 0,
+                "energy": 50,
+                "max_energy": 50,
+                "inventory": [
+                    {
+                        "item_class": "Weapon",
+                        "name": "Mythril Blade",
+                        "description": "A powerful sword",
+                        "value": 20,
+                        "attack": 35
+                    }
+                ],
+                "level_keys": [],
+                "npc_class": "NPC",
+                "level": 0,
+                "is_boss": false
+            }
+        },
+        {
+            "position": [
+                0,
+                10,
+                9
+            ],
+            "npc_data": {
+                "name": "Wise Troll",
+                "health": 76,
+                "max_health": 76,
+                "attack": 11,
+                "defense": 4,
+                "agility": 4,
+                "symbol": "T",
+                "weapon": null,
+                "credits": 0,
+                "energy": 50,
+                "max_energy": 50,
+                "inventory": [
+                    {
+                        "item_class": "Weapon",
+                        "name": "Iron Sword",
+                        "description": "A basic sword",
+                        "value": 20,
+                        "attack": 10
+                    }
+                ],
+                "level_keys": [],
+                "npc_class": "NPC",
+                "level": 0,
+                "is_boss": false
+            }
+        },
+        {
+            "position": [
+                0,
+                11,
+                4
+            ],
+            "npc_data": {
+                "name": "Loyal Dragon",
+                "health": 65,
+                "max_health": 65,
+                "attack": 8,
+                "defense": 5,
+                "agility": 5,
+                "symbol": "D",
+                "weapon": null,
+                "credits": 0,
+                "energy": 50,
+                "max_energy": 50,
+                "inventory": [
+                    {
+                        "item_class": "Potion",
+                        "name": "Medium Potion",
+                        "description": "Restores 50 HP",
+                        "value": 10,
+                        "heal_amount": 50
+                    }
+                ],
+                "level_keys": [],
+                "npc_class": "NPC",
+                "level": 0,
+                "is_boss": false
+            }
+        },
+        {
+            "position": [
+                0,
+                5,
+                3
+            ],
+            "npc_data": {
+                "name": "Mysterious Orc",
+                "health": 0,
+                "max_health": 52,
+                "attack": 10,
+                "defense": 4,
+                "agility": 5,
+                "symbol": "O",
+                "weapon": null,
+                "credits": 0,
+                "energy": 50,
+                "max_energy": 50,
+                "inventory": [
+                    {
+                        "item_class": "EnergyPotion",
+                        "name": "Medium Energy Potion",
+                        "description": "Restores 50 Energy",
+                        "value": 15,
+                        "heal_amount": 50
+                    }
+                ],
+                "level_keys": [],
+                "npc_class": "NPC",
+                "level": 0,
+                "is_boss": false
+            }
+        },
+        {
+            "position": [
+                0,
+                8,
+                6
+            ],
+            "npc_data": {
+                "name": "Vicious Warrior",
+                "health": 69,
+                "max_health": 69,
+                "attack": 12,
+                "defense": 5,
+                "agility": 5,
+                "symbol": "W",
+                "weapon": null,
+                "credits": 0,
+                "energy": 50,
+                "max_energy": 50,
+                "inventory": [
+                    {
+                        "item_class": "Potion",
+                        "name": "Small Potion",
+                        "description": "Restores 20 HP",
+                        "value": 10,
+                        "heal_amount": 20
+                    }
+                ],
+                "level_keys": [],
+                "npc_class": "NPC",
+                "level": 0,
+                "is_boss": false
+            }
+        }
+    ],
+    "planted_crops": {},
+    "time_system": {
+        "current_time": "2025-04-05T23:03:30.902165",
+        "time_multiplier": 1.0
+    },
+    "weather": {
+        "current_weather": "sunny",
+        "weather_duration": 20
+    },
+    "is_survival_mode": false,
+    "farming_stats": {
+        "crops_planted": 0,
+        "crops_harvested": 0,
+        "total_crop_value": 0,
+        "farming_level": 1,
+        "farming_exp": 0,
+        "farming_exp_to_next": 100
+    },
+    "survival_stats": {
+        "waves_completed": 0,
+        "total_enemies_defeated": 0,
+        "highest_wave_reached": 0,
+        "best_completion_time": null,
+        "total_rewards_earned": 0
+    },
+    "game_stats": {
+        "battles_won": 2,
+        "battles_lost": 0,
+        "monsters_killed": 2,
+        "total_credits_earned": 0,
+        "highest_level": 1,
+        "portal_bosses_defeated": 0
+    },
+    "battle_history": [
+        {
+            "npc_name": "Mysterious Orc",
+            "player_name": "JAY DUDE",
+            "level": 1,
+            "result": "Victory",
+            "turns": 9,
+            "credits_gained": 0,
+            "items_found": []
+        },
+        {
+            "npc_name": "Mysterious Orc",
+            "player_name": "JAY DUDE",
+            "level": 1,
+            "result": "Victory",
+            "turns": 1,
+            "credits_gained": 0,
+            "items_found": []
+        }
+    ]
+}
